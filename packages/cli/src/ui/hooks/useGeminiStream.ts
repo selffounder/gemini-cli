@@ -363,6 +363,8 @@ export const useGeminiStream = (
     [addItem, pendingHistoryItemRef, setPendingHistoryItem],
   );
 
+
+
   const handleUserCancelledEvent = useCallback(
     (userMessageTimestamp: number) => {
       if (turnCancelledRef.current) {
@@ -619,6 +621,16 @@ export const useGeminiStream = (
     ],
   );
 
+  const continueAfterToolRejection = useCallback(
+    async (cancelledTools: TrackedToolCall[], abortSignal?: AbortSignal) => {
+      if (!cancelledTools || cancelledTools.length === 0) return;
+      const toolNames = cancelledTools.map((t) => t.request?.name ?? 'unknown').join(', ');
+      const continuationMessage = `The following tool calls were cancelled: ${toolNames}. What would you like me to do instead?`;
+      await submitQuery(continuationMessage, { isContinuation: true });
+    },
+    [submitQuery],
+  );
+
   const handleCompletedTools = useCallback(
     async (completedToolCallsFromScheduler: TrackedToolCall[]) => {
       if (isResponding) {
@@ -712,6 +724,7 @@ export const useGeminiStream = (
           (toolCall) => toolCall.request.callId,
         );
         markToolsAsSubmitted(callIdsToMarkAsSubmitted);
+        await continueAfterToolRejection(geminiTools);
         return;
       }
 
@@ -748,6 +761,7 @@ export const useGeminiStream = (
       geminiClient,
       performMemoryRefresh,
       modelSwitchedFromQuotaError,
+      continueAfterToolRejection,
     ],
   );
 
