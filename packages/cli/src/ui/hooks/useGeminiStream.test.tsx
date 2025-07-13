@@ -630,8 +630,12 @@ describe('useGeminiStream', () => {
         role: 'user',
         parts: [{ text: 'cancelled' }],
       });
-      // Ensure we do NOT call back to the API
-      expect(mockSendMessageStream).not.toHaveBeenCalled();
+      // Ensure we DO call back to the API with continuation message
+      expect(mockSendMessageStream).toHaveBeenCalledWith(
+        'The following tool calls were cancelled: testTool. What would you like me to do instead?',
+        expect.any(AbortSignal),
+        'test-session-id########5',
+      );
     });
   });
 
@@ -740,8 +744,12 @@ describe('useGeminiStream', () => {
         ],
       });
 
-      // No message should be sent back to the API for a turn with only cancellations
-      expect(mockSendMessageStream).not.toHaveBeenCalled();
+      // A continuation message should be sent back to the API for cancelled tools
+      expect(mockSendMessageStream).toHaveBeenCalledWith(
+        'The following tool calls were cancelled: toolA, toolB. What would you like me to do instead?',
+        expect.any(AbortSignal),
+        'test-session-id########5',
+      );
     });
   });
 
