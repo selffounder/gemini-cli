@@ -363,8 +363,6 @@ export const useGeminiStream = (
     [addItem, pendingHistoryItemRef, setPendingHistoryItem],
   );
 
-
-
   const handleUserCancelledEvent = useCallback(
     (userMessageTimestamp: number) => {
       if (turnCancelledRef.current) {
@@ -622,9 +620,11 @@ export const useGeminiStream = (
   );
 
   const continueAfterToolRejection = useCallback(
-    async (cancelledTools: TrackedToolCall[], abortSignal?: AbortSignal) => {
+    async (cancelledTools: TrackedToolCall[]) => {
       if (!cancelledTools || cancelledTools.length === 0) return;
-      const toolNames = cancelledTools.map((t) => t.request?.name ?? 'unknown').join(', ');
+      const toolNames = cancelledTools
+        .map((t) => t.request?.name ?? 'unknown')
+        .join(', ');
       const continuationMessage = `The following tool calls were cancelled: ${toolNames}. What would you like me to do instead?`;
       await submitQuery(continuationMessage, { isContinuation: true });
     },
